@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>博物馆 AI 应用场景</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-deep: #14110e;
+      --bg-surface: #1e1a16;
+      --bg-card: #262018;
+      --bg-card-hover: #2e281f;
+      --border: rgba(201, 162, 39, 0.18);
+      --border-strong: rgba(201, 162, 39, 0.35);
+      --gold: #c9a227;
+      --gold-light: #e8c84a;
+      --gold-dim: rgba(201, 162, 39, 0.12);
+      --bronze: #a67c52;
+      --jade: #4a8c7a;
+      --text-primary: #f2ebe0;
+      --text-secondary: #a89f92;
+      --text-muted: #6e655c;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      --radius: 14px;
+      --font-serif: "Noto Serif SC", serif;
+      --font-sans: "Noto Sans SC", sans-serif;
+      --font-display: "Ma Shan Zheng", cursive;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201, 162, 39, 0.08), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 80%, rgba(74, 140, 122, 0.05), transparent),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* Header */
+    header {
+      padding: 56px 0 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      background: var(--gold-dim);
+    }
+
+    header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 6vw, 4.2rem);
+      font-weight: 400;
+      color: var(--gold-light);
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    header p {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin: 0 auto 32px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-num {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 36px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(20, 17, 14, 0.92);
+      backdrop-filter: blur(12px);
+      padding: 16px 0;
+      border-bottom: 1px solid transparent;
+    }
+
+    .controls.stuck { border-bottom-color: var(--border); }
+
+    .search-wrap {
+      position: relative;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 18px;
+      height: 18px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrap input:focus { border-color: var(--border-strong); }
+    .search-wrap input::placeholder { color: var(--text-muted); }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .filter-btn i { width: 15px; height: 15px; }
+
+    .filter-btn:hover {
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+      background: var(--gold-dim);
+    }
+
+    .filter-btn.active {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+
+    /* Category sections */
+    .category-section { margin-bottom: 48px; }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .category-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .category-icon i { width: 22px; height: 22px; }
+
+    .cat-visitor .category-icon { background: rgba(201, 162, 39, 0.15); color: var(--gold); }
+    .cat-collection .category-icon { background: rgba(166, 124, 82, 0.15); color: var(--bronze); }
+    .cat-curation .category-icon { background: rgba(139, 107, 168, 0.15); color: #b89fd4; }
+    .cat-conservation .category-icon { background: rgba(74, 140, 122, 0.15); color: var(--jade); }
+    .cat-operations .category-icon { background: rgba(91, 141, 184, 0.15); color: #7eb3d4; }
+    .cat-marketing .category-icon { background: rgba(201, 120, 90, 0.15); color: #d4957a; }
+    .cat-agent .category-icon { background: rgba(201, 162, 39, 0.2); color: var(--gold-light); }
+
+    .category-header h2 {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+
+    .category-header span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-left: auto;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+    }
+
+    /* Cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s, background 0.25s;
+      animation: fadeUp 0.5s ease both;
+      cursor: pointer;
+    }
+
+    .card-body {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .card-image {
+      width: 100%;
+      height: 168px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-deep);
+    }
+
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.35s ease;
+    }
+
+    .card:hover .card-image img { transform: scale(1.04); }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-strong);
+      background: var(--bg-card-hover);
+      box-shadow: var(--shadow);
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+
+    .card-expand-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      color: var(--gold);
+      transition: gap 0.2s;
+    }
+
+    .card:hover .card-expand-hint { gap: 8px; }
+    .card-expand-hint i { width: 14px; height: 14px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: var(--gold-dim);
+      color: var(--gold);
+    }
+
+    .card-icon i { width: 24px; height: 24px; }
+
+    .card-meta { flex: 1; min-width: 0; }
+
+    .card-num {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+
+    .card-title {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+
+    .priority {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.68rem;
+      color: var(--gold);
+      margin-top: 4px;
+    }
+
+    .card-desc {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      padding: 3px 9px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .card-value {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--jade);
+    }
+
+    .card-value i {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state i { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.4; }
+
+    /* Detail panel */
+    .panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+      backdrop-filter: blur(4px);
+    }
+
+    .panel-overlay.open { opacity: 1; visibility: visible; }
+
+    .detail-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(520px, 100vw);
+      height: 100vh;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-strong);
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: -12px 0 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .detail-panel.open { transform: translateX(0); }
+
+    .panel-header {
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .panel-header-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .panel-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gold-dim);
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .panel-icon i { width: 26px; height: 26px; }
+
+    .panel-title-wrap { flex: 1; min-width: 0; }
+
+    .panel-num {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .panel-title {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .panel-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .panel-close:hover {
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+      background: var(--gold-dim);
+    }
+
+    .panel-close i { width: 18px; height: 18px; }
+
+    .panel-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    .panel-hero {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: none;
+    }
+
+    .panel-hero.visible { display: block; }
+
+    .panel-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px 32px;
+    }
+
+    .panel-body::-webkit-scrollbar { width: 6px; }
+    .panel-body::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .detail-section { margin-bottom: 22px; }
+    .detail-section:last-child { margin-bottom: 0; }
+
+    .detail-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .detail-label i { width: 15px; height: 15px; }
+
+    .detail-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .detail-list li {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      padding-left: 16px;
+      position: relative;
+      line-height: 1.55;
+    }
+
+    .detail-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--bronze);
+    }
+
+    .flow-list li::before {
+      background: var(--gold);
+      border-radius: 2px;
+      width: 4px;
+      height: 4px;
+    }
+
+    .detail-text {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    .detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .detail-tag {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .deploy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .deploy-item {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+    }
+
+    .deploy-item.full { grid-column: 1 / -1; }
+
+    .deploy-key {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .deploy-val {
+      font-size: 0.85rem;
+      color: var(--text-primary);
+    }
+
+    .detail-note {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(201, 162, 39, 0.08);
+      border: 1px solid var(--border);
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      display: flex;
+      gap: 10px;
+    }
+
+    .detail-note i {
+      width: 16px;
+      height: 16px;
+      color: var(--gold);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .detail-value-box {
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(74, 140, 122, 0.1);
+      border: 1px solid rgba(74, 140, 122, 0.25);
+      font-size: 0.88rem;
+      color: var(--jade);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .detail-value-box i {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    body.panel-open { overflow: hidden; }
+
+    footer {
+      text-align: center;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    footer a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .page { padding: 0 16px 60px; }
+      header { padding: 36px 0 28px; }
+      .stats { gap: 24px; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .category-header span { display: none; }
+      .deploy-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="header-badge">
+        <i data-lucide="sparkles"></i>
+        Museum AI Scenarios
+      </div>
+      <h1>博物馆 AI 应用场景</h1>
+      <p>按服务对象与业务域划分，涵盖观众体验、藏品科研、策展展览、文物保护、运营管理、传播运营与智能体中枢七大方向。</p>
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-num">45</div>
+          <div class="stat-label">应用场景</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">7</div>
+          <div class="stat-label">业务域</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">2</div>
+          <div class="stat-label">服务对象</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="controls" id="controls">
+      <div class="search-wrap">
+        <i data-lucide="search"></i>
+        <input type="search" id="search" placeholder="搜索场景名称、描述或技术能力…" autocomplete="off" />
+      </div>
+      <div class="filters" id="filters"></div>
+    </div>
+
+    <main id="main"></main>
+
+    <footer>
+      积木网~企业原生AI解决方案供应商<br>
+      <a href="https://jeemoo.com" target="_blank" rel="noopener noreferrer">jeemoo.com</a>
+    </footer>
+  </div>
+
+  <div class="panel-overlay" id="panelOverlay"></div>
+  <aside class="detail-panel" id="detailPanel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+    <div class="panel-header">
+      <div class="panel-header-top">
+        <div class="panel-icon" id="panelIcon"><i data-lucide="sparkles"></i></div>
+        <div class="panel-title-wrap">
+          <div class="panel-num" id="panelNum"></div>
+          <h2 class="panel-title" id="panelTitle"></h2>
+        </div>
+        <button class="panel-close" id="panelClose" aria-label="关闭详情">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <p class="panel-desc" id="panelDesc"></p>
+    </div>
+    <div class="panel-hero" id="panelHero"><img id="panelHeroImg" src="" alt="" /></div>
+    <div class="panel-body" id="panelBody"></div>
+  </aside>
+
+  <script src="博物馆AI场景详情.js"></script>
+
+  <script>
+    const categories = [
+      { id: "all", label: "全部", icon: "layout-grid" },
+      { id: "visitor", label: "观众体验", icon: "users", cls: "cat-visitor", tag: "To C" },
+      { id: "collection", label: "藏品与科研", icon: "archive", cls: "cat-collection", tag: "To B" },
+      { id: "curation", label: "策展与展览", icon: "frame", cls: "cat-curation", tag: "To B" },
+      { id: "conservation", label: "文物保护", icon: "shield-check", cls: "cat-conservation", tag: "To B" },
+      { id: "operations", label: "运营管理", icon: "building-2", cls: "cat-operations", tag: "To B" },
+      { id: "marketing", label: "传播与运营", icon: "megaphone", cls: "cat-marketing", tag: "To C/B" },
+      { id: "agent", label: "智能体中枢", icon: "bot", cls: "cat-agent", tag: "跨系统" },
+    ];
+
+    const scenarios = [
+      { id: 1, cat: "visitor", icon: "map-pin", title: "智能路线规划", desc: "根据参观时长、兴趣偏好、体力与实时客流，动态生成并调整参观路线。", tech: ["室内定位", "馆藏知识库", "客流数据", "对话式交互"], value: "提升参观效率，减少「走马观花」", priority: 3 },
+      { id: 2, cat: "visitor", icon: "mic", title: "AI 私人讲解员", desc: "基于 RAG 的语音/文字讲解，支持多轮追问与上下文理解。", tech: ["大模型", "RAG", "语音合成/识别"], value: "替代或补充人工讲解，实现「千人千面」", priority: 3 },
+      { id: 3, cat: "visitor", icon: "user-cog", title: "个性化讲解", desc: "根据观众身份（儿童/学生/专家/外国游客）自动调节内容详略与术语难度。", tech: ["用户画像", "内容分层", "多语言"], value: "降低理解门槛，兼顾专业深度", priority: 0 },
+      { id: 4, cat: "visitor", icon: "git-branch", title: "展品关联问答", desc: "观众可追问「旁边那件和它有什么关系？」等跨展品问题。", tech: ["知识图谱", "上下文记忆", "空间关联"], value: "串联碎片化展品，深化文化理解", priority: 0 },
+      { id: 5, cat: "visitor", icon: "glasses", title: "AR/VR 联动讲解", desc: "提问触发 AR 演示、3D 沙盘动画或操作流程可视化。", tech: ["多模态交互", "展项联动", "数字孪生"], value: "抽象知识可视化，增强沉浸感", priority: 0 },
+      { id: 6, cat: "visitor", icon: "camera", title: "最佳观展助手", desc: "推荐最佳拍摄点、隐藏故事、冷门精品与错峰时段。", tech: ["位置服务", "内容推荐", "客流预测"], value: "提升社交传播与二次传播", priority: 0 },
+      { id: 7, cat: "visitor", icon: "accessibility", title: "无障碍参观服务", desc: "为视障、听障及老年观众提供语音导览、手语数字人、大字/简版讲解。", tech: ["多模态 AI", "无障碍适配"], value: "扩大服务覆盖面，体现人文关怀", priority: 0 },
+      { id: 8, cat: "visitor", icon: "globe", title: "线上虚拟展厅导览", desc: "馆外通过小程序/Web 进行 AI 导览、云观展与预约联动。", tech: ["数字藏品", "3D 建模", "在线对话"], value: "延伸参观体验至馆外", priority: 1 },
+      { id: 9, cat: "visitor", icon: "graduation-cap", title: "互动研学助教", desc: "配合学校研学活动，提供任务引导、知识测验与探究式问答。", tech: ["教育内容库", "游戏化", "学情分析"], value: "提升教育服务质量与复购", priority: 0 },
+      { id: 10, cat: "visitor", icon: "message-circle", title: "智能客服与票务助手", desc: "解答开放时间、预约规则、交通停车等高频问题，辅助购票预约。", tech: ["对话机器人", "业务系统对接"], value: "降低人工客服压力，优化首触点体验", priority: 3 },
+
+      { id: 11, cat: "collection", icon: "tags", title: "藏品智能标注与分类", desc: "自动识别文物类别、年代、材质、纹样等特征，辅助编目建档。", tech: ["图像识别", "多模态大模型", "聚类"], value: "大幅降低人工标注成本", priority: 3 },
+      { id: 12, cat: "collection", icon: "scan-search", title: "相似藏品检索与聚类", desc: "以图搜图、以文搜图，发现馆藏中的关联藏品与未标注关联。", tech: ["向量检索", "知识图谱"], value: "盘活沉睡馆藏，辅助学术研究", priority: 0 },
+      { id: 13, cat: "collection", icon: "network", title: "藏品知识图谱构建", desc: "从文献、档案、展览记录中抽取实体关系，构建结构化知识网络。", tech: ["NLP", "知识抽取", "图谱推理"], value: "支撑智能问答与跨系统数据互通", priority: 2 },
+      { id: 14, cat: "collection", icon: "book-open", title: "考古文献智能研读", desc: "辅助研究人员快速检索、摘要、比对海量考古报告与学术论文。", tech: ["RAG", "长文本理解", "引用溯源"], value: "加速科研产出", priority: 0 },
+      { id: 15, cat: "collection", icon: "palette", title: "文物纹样提取与再生", desc: "从文物图像中提取纹样元素，用于文创设计或非遗工艺模拟。", tech: ["图像分割", "生成式 AI"], value: "促进文化元素活化利用", priority: 0 },
+      { id: 16, cat: "collection", icon: "package", title: "出入库与库房智能管理", desc: "结合 RFID/视觉识别，辅助藏品定位、盘点与移动轨迹记录。", tech: ["物联网", "视觉识别", "工作流"], value: "提升库房管理精度与安全性", priority: 0 },
+      { id: 17, cat: "collection", icon: "landmark", title: "数字人文研究助手", desc: "支持历史事件脉络梳理、人物关系分析、跨朝代对比研究。", tech: ["大模型", "知识图谱", "可视化"], value: "拓展数字人文研究范式", priority: 0 },
+
+      { id: 18, cat: "curation", icon: "layout-template", title: "智能策展辅助", desc: "根据主题自动推荐展品组合、展线布局与叙事结构。", tech: ["知识库", "推荐算法", "空间规划"], value: "缩短策展周期，优化叙事逻辑", priority: 0 },
+      { id: 19, cat: "curation", icon: "file-text", title: "展陈文案生成与校对", desc: "辅助撰写展板说明、展览前言、导览词，并进行史实核查。", tech: ["大模型", "事实核查", "风格模板"], value: "提升内容生产效率与一致性", priority: 0 },
+      { id: 20, cat: "curation", icon: "image", title: "文物复原图像生成", desc: "基于考古证据生成符合学术规范的器物、建筑、场景复原图。", tech: ["生成式 AI", "专家审核流程"], value: "丰富展览视觉表达", priority: 0 },
+      { id: 21, cat: "curation", icon: "zap", title: "临时展览快速搭建", desc: "输入主题与馆藏清单，快速生成展览方案草案与物料清单。", tech: ["工作流自动化", "模板库"], value: "降低中小馆策展门槛", priority: 0 },
+      { id: 22, cat: "curation", icon: "film", title: "展项多媒体脚本生成", desc: "为视频、互动屏、全息投影等生成解说脚本与分镜建议。", tech: ["多模态内容生成"], value: "加速多媒体内容制作", priority: 0 },
+      { id: 23, cat: "curation", icon: "bar-chart-2", title: "观众反馈分析与展评", desc: "汇总评论、问卷、社交舆情，分析展览受欢迎度与改进点。", tech: ["情感分析", "主题聚类"], value: "数据驱动展览迭代", priority: 0 },
+
+      { id: 24, cat: "conservation", icon: "scan-eye", title: "文物病害智能诊断", desc: "通过图像识别检测开裂、褪色、霉变、锈蚀等病害类型与程度。", tech: ["计算机视觉", "病害知识库"], value: "早发现、早干预", priority: 2 },
+      { id: 25, cat: "conservation", icon: "thermometer", title: "保护风险预测", desc: "结合温湿度、光照、客流等环境数据，预测文物劣化风险。", tech: ["时序预测", "环境传感", "告警"], value: "从被动修复转向主动预防", priority: 0 },
+      { id: 26, cat: "conservation", icon: "wrench", title: "修复方案辅助决策", desc: "基于历史修复案例与材料特性，推荐修复工艺与材料方案。", tech: ["案例库", "专家系统", "RAG"], value: "辅助修复师决策，沉淀经验", priority: 2 },
+      { id: 27, cat: "conservation", icon: "box", title: "高精度数字化采集辅助", desc: "辅助文物三维扫描、超高清摄影的参数优化与质量检测。", tech: ["视觉质检", "点云处理"], value: "提升数字资产质量", priority: 0 },
+      { id: 28, cat: "conservation", icon: "mountain", title: "不可移动文物监测", desc: "对古建筑、石窟、遗址进行结构变形与风化趋势分析。", tech: ["遥感", "无人机", "时序分析"], value: "守护文化遗产本体安全", priority: 0 },
+
+      { id: 29, cat: "operations", icon: "users-round", title: "智慧客流调度", desc: "实时监测各展厅人流密度，触发分流引导与预约限流建议。", tech: ["视频分析", "热力图", "预测模型"], value: "保障参观安全与体验", priority: 3 },
+      { id: 30, cat: "operations", icon: "gauge", title: "领导驾驶舱与决策支持", desc: "汇聚客流、安防、票务、能耗等数据，生成运营洞察与预警。", tech: ["大数据平台", "BI", "自然语言查询"], value: "辅助馆领导科学决策", priority: 3 },
+      { id: 31, cat: "operations", icon: "shield", title: "综合安防智能分析", desc: "异常行为识别、重点区域告警、消防联动与应急指挥辅助。", tech: ["视频 AI", "IoT 联动"], value: "提升场馆安全防控能力", priority: 0 },
+      { id: 32, cat: "operations", icon: "settings", title: "设备运维预测", desc: "对空调、照明、多媒体展项等进行故障预测与维保提醒。", tech: ["设备物联网", "预测性维护"], value: "降低宕机风险与运维成本", priority: 0 },
+      { id: 33, cat: "operations", icon: "boxes", title: "数字孪生展厅管理", desc: "在虚拟空间中映射实体场馆，实现设备、环境、客流的统一管理。", tech: ["数字孪生", "实时数据同步"], value: "精细化场馆运营管理", priority: 1 },
+      { id: 34, cat: "operations", icon: "briefcase", title: "OA 智能办公助手", desc: "辅助公文起草、会议纪要、日程安排、科研项目管理。", tech: ["大模型", "工作流", "权限管控"], value: "提升行政与科研办公效率", priority: 0 },
+      { id: 35, cat: "operations", icon: "calculator", title: "财务与预算分析助手", desc: "辅助预算编制、经费执行分析与合规审查。", tech: ["数据分析", "规则引擎"], value: "加强内控与资金使用效率", priority: 0 },
+
+      { id: 36, cat: "marketing", icon: "share-2", title: "全媒体内容自动生成", desc: "根据展览/文物素材自动生成短视频脚本、海报文案、推文。", tech: ["多模态生成", "品牌模板"], value: "降低新媒体运营成本", priority: 0 },
+      { id: 37, cat: "marketing", icon: "shopping-bag", title: "文创产品设计辅助", desc: "基于馆藏元素生成文创概念图、包装方案与市场文案。", tech: ["图像生成", "趋势分析"], value: "加速文创开发周期", priority: 1 },
+      { id: 38, cat: "marketing", icon: "eye", title: "舆情监测与品牌洞察", desc: "监测社交平台对博物馆的讨论，识别热点话题与负面风险。", tech: ["舆情分析", "情感识别"], value: "主动舆情应对与品牌运营", priority: 0 },
+      { id: 39, cat: "marketing", icon: "calendar-days", title: "个性化活动推荐", desc: "向观众推荐讲座、工作坊、特展等，提升活动参与率。", tech: ["推荐系统", "用户画像"], value: "提高观众粘性与复访率", priority: 0 },
+      { id: 40, cat: "marketing", icon: "brain", title: "专属文博大模型", desc: "基于馆方语料训练领域大模型（如红色文化、地方文史专属模型）。", tech: ["领域微调", "RAG", "安全合规"], value: "打造差异化文化 IP 与技术壁垒", priority: 2 },
+
+      { id: 41, cat: "agent", icon: "waypoints", title: "统一智能服务入口", desc: "一个 AI 智能体对接导览、票务、客服、研学等多个公众服务触点。", tech: ["智能体编排", "API 集成"], value: "统一体验，降低系统割裂感", priority: 0 },
+      { id: 42, cat: "agent", icon: "database", title: "跨系统数据问答", desc: "馆员用自然语言查询「某件文物当前是否在库」「上月客流峰值多少」。", tech: ["数据治理", "NL2SQL", "权限控制"], value: "打破数据孤岛，提升数据可用性", priority: 0 },
+      { id: 43, cat: "agent", icon: "workflow", title: "业务流程智能编排", desc: "自动串联审批、出库、展览、宣传等环节，如「办一场临时展需要哪些步骤」。", tech: ["工作流引擎", "技能调用"], value: "降低跨部门协作成本", priority: 0 },
+      { id: 44, cat: "agent", icon: "bot", title: "馆员 Copilot", desc: "为策展人、讲解员、库房管理员提供岗位专属 AI 助手。", tech: ["角色权限", "领域知识库"], value: "赋能一线人员，不替代专业判断", priority: 0 },
+      { id: 45, cat: "agent", icon: "cloud", title: "中小馆「开箱即用」方案", desc: "为资金与技术有限的中小博物馆提供轻量化 SaaS 智能体服务。", tech: ["云端部署", "模板化", "低代码"], value: "推动博物馆行业整体数智化", priority: 0 },
+    ];
+
+    const visitorImages = {
+      1: "images/visitor/01-智能路线规划.png",
+      2: "images/visitor/02-AI私人讲解员.png",
+      3: "images/visitor/03-个性化讲解.png",
+      4: "images/visitor/04-展品关联问答.png",
+      5: "images/visitor/05-ARVR联动讲解.png",
+      6: "images/visitor/06-最佳观展助手.png",
+      7: "images/visitor/07-无障碍参观服务.png",
+      8: "images/visitor/08-线上虚拟展厅导览.png",
+      9: "images/visitor/09-互动研学助教.png",
+      10: "images/visitor/10-智能客服与票务助手.png",
+    };
+
+    let activeFilter = "all";
+    let searchQuery = "";
+
+    function renderFilters() {
+      const container = document.getElementById("filters");
+      container.innerHTML = categories.map(c => `
+        <button class="filter-btn ${c.id === activeFilter ? "active" : ""}" data-cat="${c.id}">
+          <i data-lucide="${c.icon}"></i>
+          ${c.label}
+        </button>
+      `).join("");
+
+      container.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeFilter = btn.dataset.cat;
+          renderFilters();
+          renderCards();
+          lucide.createIcons();
+        });
+      });
+    }
+
+    function filterScenarios() {
+      const q = searchQuery.toLowerCase().trim();
+      return scenarios.filter(s => {
+        if (activeFilter !== "all" && s.cat !== activeFilter) return false;
+        if (!q) return true;
+        const d = scenarioDetails[s.id];
+        const hay = [
+          s.title, s.desc, s.value, ...s.tech,
+          ...(d ? [...d.users, ...d.features, ...d.flow, ...d.systems, d.techDetail, d.cases || "", d.notes || "", d.deploy.period, d.deploy.museums, d.deploy.prerequisites] : [])
+        ].join(" ").toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function renderCard(s, delay) {
+      const stars = s.priority > 0
+        ? `<div class="priority">${"★".repeat(s.priority)}<span style="color:var(--text-muted);margin-left:4px">优先落地</span></div>`
+        : "";
+      const img = visitorImages[s.id];
+      const imageHtml = img
+        ? `<div class="card-image"><img src="${img}" alt="${s.title}应用场景示意图" loading="lazy" /></div>`
+        : "";
+
+      return `
+        <article class="card" style="animation-delay:${delay}ms" data-id="${s.id}" role="button" tabindex="0" aria-label="查看${s.title}详情">
+          ${imageHtml}
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-icon"><i data-lucide="${s.icon}"></i></div>
+              <div class="card-meta">
+                <div class="card-num">场景 ${String(s.id).padStart(2, "0")}</div>
+                <h3 class="card-title">${s.title}</h3>
+                ${stars}
+              </div>
+            </div>
+            <p class="card-desc">${s.desc}</p>
+            <div class="card-tags">${s.tech.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+            <div class="card-footer">
+              <div class="card-value">
+                <i data-lucide="trending-up"></i>
+                <span>${s.value}</span>
+              </div>
+              <span class="card-expand-hint">查看详情 <i data-lucide="chevron-right"></i></span>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderDetailSection(icon, label, content) {
+      return `
+        <div class="detail-section">
+          <div class="detail-label"><i data-lucide="${icon}"></i>${label}</div>
+          ${content}
+        </div>`;
+    }
+
+    function openPanel(id) {
+      const s = scenarios.find(x => x.id === id);
+      const d = scenarioDetails[id];
+      if (!s || !d) return;
+
+      const cat = categories.find(c => c.id === s.cat);
+      document.getElementById("panelNum").textContent = `场景 ${String(s.id).padStart(2, "0")} · ${cat ? cat.label : ""}`;
+      document.getElementById("panelTitle").textContent = s.title;
+      document.getElementById("panelDesc").textContent = s.desc;
+      document.getElementById("panelIcon").innerHTML = `<i data-lucide="${s.icon}"></i>`;
+
+      const hero = document.getElementById("panelHero");
+      const heroImg = document.getElementById("panelHeroImg");
+      if (visitorImages[id]) {
+        heroImg.src = visitorImages[id];
+        heroImg.alt = `${s.title}应用场景示意图`;
+        hero.classList.add("visible");
+      } else {
+        hero.classList.remove("visible");
+        heroImg.src = "";
+      }
+
+      document.getElementById("panelBody").innerHTML = [
+        renderDetailSection("users", "服务对象", `<ul class="detail-list">${d.users.map(u => `<li>${u}</li>`).join("")}</ul>`),
+        renderDetailSection("list-checks", "核心功能", `<ul class="detail-list">${d.features.map(f => `<li>${f}</li>`).join("")}</ul>`),
+        renderDetailSection("route", "使用流程", `<ul class="detail-list flow-list">${d.flow.map((f, i) => `<li>${i + 1}. ${f}</li>`).join("")}</ul>`),
+        renderDetailSection("server", "依赖系统", `<div class="detail-tags">${d.systems.map(t => `<span class="detail-tag">${t}</span>`).join("")}</div>`),
+        renderDetailSection("cpu", "技术方案", `<p class="detail-text">${d.techDetail}</p>`),
+        renderDetailSection("trending-up", "业务价值", `<div class="detail-value-box"><i data-lucide="trending-up"></i><span>${s.value}</span></div>`),
+        d.cases ? renderDetailSection("landmark", "参考案例", `<p class="detail-text">${d.cases}</p>`) : "",
+        renderDetailSection("calendar-clock", "落地建议", `
+          <div class="deploy-grid">
+            <div class="deploy-item"><div class="deploy-key">建设周期</div><div class="deploy-val">${d.deploy.period}</div></div>
+            <div class="deploy-item"><div class="deploy-key">适用馆型</div><div class="deploy-val">${d.deploy.museums}</div></div>
+            <div class="deploy-item full"><div class="deploy-key">前置条件</div><div class="deploy-val">${d.deploy.prerequisites}</div></div>
+            ${s.priority > 0 ? `<div class="deploy-item full"><div class="deploy-key">落地优先级</div><div class="deploy-val">${"★".repeat(s.priority)} 高优先级</div></div>` : ""}
+          </div>`),
+        d.notes ? renderDetailSection("alert-circle", "注意事项", `<div class="detail-note"><i data-lucide="alert-circle"></i><span>${d.notes}</span></div>`) : "",
+      ].join("");
+
+      document.getElementById("panelOverlay").classList.add("open");
+      document.getElementById("detailPanel").classList.add("open");
+      document.body.classList.add("panel-open");
+      lucide.createIcons();
+      document.getElementById("panelClose").focus();
+    }
+
+    function closePanel() {
+      document.getElementById("panelOverlay").classList.remove("open");
+      document.getElementById("detailPanel").classList.remove("open");
+      document.body.classList.remove("panel-open");
+    }
+
+    function bindCardEvents() {
+      document.querySelectorAll(".card").forEach(card => {
+        card.addEventListener("click", () => openPanel(Number(card.dataset.id)));
+        card.addEventListener("keydown", e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openPanel(Number(card.dataset.id));
+          }
+        });
+      });
+    }
+
+    function renderCards() {
+      const main = document.getElementById("main");
+      const filtered = filterScenarios();
+
+      if (filtered.length === 0) {
+        main.innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="search-x"></i>
+            <p>未找到匹配的场景，请尝试其他关键词或分类。</p>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      if (activeFilter === "all" && !searchQuery) {
+        main.innerHTML = categories
+          .filter(c => c.id !== "all")
+          .map(cat => {
+            const items = filtered.filter(s => s.cat === cat.id);
+            if (!items.length) return "";
+            return `
+              <section class="category-section ${cat.cls}">
+                <div class="category-header">
+                  <div class="category-icon"><i data-lucide="${cat.icon}"></i></div>
+                  <h2>${cat.label}</h2>
+                  <span>${cat.tag} · ${items.length} 个场景</span>
+                </div>
+                <div class="cards-grid">
+                  ${items.map((s, i) => renderCard(s, i * 40)).join("")}
+                </div>
+              </section>`;
+          }).join("");
+      } else {
+        main.innerHTML = `
+          <section class="category-section">
+            <div class="category-header">
+              <div class="category-icon" style="background:var(--gold-dim);color:var(--gold)">
+                <i data-lucide="filter"></i>
+              </div>
+              <h2>筛选结果</h2>
+              <span>共 ${filtered.length} 个场景</span>
+            </div>
+            <div class="cards-grid">
+              ${filtered.map((s, i) => renderCard(s, i * 30)).join("")}
+            </div>
+          </section>`;
+      }
+
+      lucide.createIcons();
+      bindCardEvents();
+    }
+
+    document.getElementById("panelClose").addEventListener("click", closePanel);
+    document.getElementById("panelOverlay").addEventListener("click", closePanel);
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closePanel();
+    });
+
+    document.getElementById("search").addEventListener("input", e => {
+      searchQuery = e.target.value;
+      renderCards();
+    });
+
+    const controls = document.getElementById("controls");
+    window.addEventListener("scroll", () => {
+      controls.classList.toggle("stuck", window.scrollY > 120);
+    });
+
+    renderFilters();
+    renderCards();
+  </script>
+</body>
+</html>
