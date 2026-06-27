@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/MuseumAI/" />
   <title>博物馆 AI 应用场景</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -458,6 +459,20 @@
       padding: 24px 24px 16px;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
+      background: var(--bg-surface);
+      z-index: 1;
+    }
+
+    .panel-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .panel-scroll::-webkit-scrollbar { width: 6px; }
+    .panel-scroll::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
     }
 
     .panel-header-top {
@@ -531,7 +546,6 @@
       height: 200px;
       overflow: hidden;
       border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
       display: none;
     }
 
@@ -544,15 +558,7 @@
     }
 
     .panel-body {
-      flex: 1;
-      overflow-y: auto;
       padding: 20px 24px 32px;
-    }
-
-    .panel-body::-webkit-scrollbar { width: 6px; }
-    .panel-body::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 3px;
     }
 
     .detail-section { margin-bottom: 22px; }
@@ -776,8 +782,10 @@
       </div>
       <p class="panel-desc" id="panelDesc"></p>
     </div>
-    <div class="panel-hero" id="panelHero"><img id="panelHeroImg" src="" alt="" /></div>
-    <div class="panel-body" id="panelBody"></div>
+    <div class="panel-scroll" id="panelScroll">
+      <div class="panel-hero" id="panelHero"><img id="panelHeroImg" src="" alt="" /></div>
+      <div class="panel-body" id="panelBody"></div>
+    </div>
   </aside>
 
   <script src="博物馆AI场景详情.js"></script>
@@ -848,7 +856,7 @@
       { id: 45, cat: "agent", icon: "cloud", title: "中小馆「开箱即用」方案", desc: "为资金与技术有限的中小博物馆提供轻量化 SaaS 智能体服务。", tech: ["云端部署", "模板化", "低代码"], value: "推动博物馆行业整体数智化", priority: 0 },
     ];
 
-    const visitorImages = {
+    const scenarioImages = {
       1: "images/visitor/01-智能路线规划.png",
       2: "images/visitor/02-AI私人讲解员.png",
       3: "images/visitor/03-个性化讲解.png",
@@ -859,6 +867,41 @@
       8: "images/visitor/08-线上虚拟展厅导览.png",
       9: "images/visitor/09-互动研学助教.png",
       10: "images/visitor/10-智能客服与票务助手.png",
+      11: "images/collection/11-藏品智能标注与分类.png",
+      12: "images/collection/12-相似藏品检索与聚类.png",
+      13: "images/collection/13-藏品知识图谱构建.png",
+      14: "images/collection/14-考古文献智能研读.png",
+      15: "images/collection/15-文物纹样提取与再生.png",
+      16: "images/collection/16-出入库与库房智能管理.png",
+      17: "images/collection/17-数字人文研究助手.png",
+      18: "images/curation/18-智能策展辅助.png",
+      19: "images/curation/19-展陈文案生成与校对.png",
+      20: "images/curation/20-文物复原图像生成.png",
+      21: "images/curation/21-临时展览快速搭建.png",
+      22: "images/curation/22-展项多媒体脚本生成.png",
+      23: "images/curation/23-观众反馈分析与展评.png",
+      24: "images/conservation/24-文物病害智能诊断.png",
+      25: "images/conservation/25-保护风险预测.png",
+      26: "images/conservation/26-修复方案辅助决策.png",
+      27: "images/conservation/27-高精度数字化采集辅助.png",
+      28: "images/conservation/28-不可移动文物监测.png",
+      29: "images/operations/29-智慧客流调度.png",
+      30: "images/operations/30-领导驾驶舱与决策支持.png",
+      31: "images/operations/31-综合安防智能分析.png",
+      32: "images/operations/32-设备运维预测.png",
+      33: "images/operations/33-数字孪生展厅管理.png",
+      34: "images/operations/34-OA智能办公助手.png",
+      35: "images/operations/35-财务与预算分析助手.png",
+      36: "images/marketing/36-全媒体内容自动生成.png",
+      37: "images/marketing/37-文创产品设计辅助.png",
+      38: "images/marketing/38-舆情监测与品牌洞察.png",
+      39: "images/marketing/39-个性化活动推荐.png",
+      40: "images/marketing/40-专属文博大模型.png",
+      41: "images/agent/41-统一智能服务入口.png",
+      42: "images/agent/42-跨系统数据问答.png",
+      43: "images/agent/43-业务流程智能编排.png",
+      44: "images/agent/44-馆员Copilot.png",
+      45: "images/agent/45-中小馆开箱即用方案.png",
     };
 
     let activeFilter = "all";
@@ -901,7 +944,7 @@
       const stars = s.priority > 0
         ? `<div class="priority">${"★".repeat(s.priority)}<span style="color:var(--text-muted);margin-left:4px">优先落地</span></div>`
         : "";
-      const img = visitorImages[s.id];
+      const img = scenarioImages[s.id];
       const imageHtml = img
         ? `<div class="card-image"><img src="${img}" alt="${s.title}应用场景示意图" loading="lazy" /></div>`
         : "";
@@ -925,7 +968,7 @@
                 <i data-lucide="trending-up"></i>
                 <span>${s.value}</span>
               </div>
-              <span class="card-expand-hint">查看详情 <i data-lucide="chevron-right"></i></span>
+              <span class="card-expand-hint"><i data-lucide="chevron-right"></i></span>
             </div>
           </div>
         </article>
@@ -953,8 +996,8 @@
 
       const hero = document.getElementById("panelHero");
       const heroImg = document.getElementById("panelHeroImg");
-      if (visitorImages[id]) {
-        heroImg.src = visitorImages[id];
+      if (scenarioImages[id]) {
+        heroImg.src = scenarioImages[id];
         heroImg.alt = `${s.title}应用场景示意图`;
         hero.classList.add("visible");
       } else {
@@ -980,6 +1023,7 @@
         d.notes ? renderDetailSection("alert-circle", "注意事项", `<div class="detail-note"><i data-lucide="alert-circle"></i><span>${d.notes}</span></div>`) : "",
       ].join("");
 
+      document.getElementById("panelScroll").scrollTop = 0;
       document.getElementById("panelOverlay").classList.add("open");
       document.getElementById("detailPanel").classList.add("open");
       document.body.classList.add("panel-open");
